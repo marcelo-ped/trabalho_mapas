@@ -1,0 +1,5 @@
+cp temain_mod.f.txt /tmp/temain_mod.f
+cp teprob.f.txt /tmp/teprob.f
+sed -i "s-~-.-g" /tmp/temain_mod.f
+gfortran /tmp/temain_mod.f /tmp/teprob.f -o temain_mod_original
+# rm *.dat

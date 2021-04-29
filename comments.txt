@@ -1,0 +1,9 @@
+
+#!-*- conding: utf8 -*-
+#Vou simular o distúrbio IDV(10), na teoria o distúrbio está no arquivo TE_data_me01.dat
+
+
+from torch.utils.cpp_extension import CUDA_HOME
+
+
+4651207900
