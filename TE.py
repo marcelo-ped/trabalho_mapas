@@ -4,30 +4,45 @@ import os
 
 def make_all_csv():
     num_dat = 0
-    file_dat = "/home/marcelo/Desktop/TE_data_me" + "01_"+ str(num_dat) + ".dat"
+    file_dat = "/home/marcelo/Desktop/testtt/new/TE_data_me" + str(num_dat) + ".dat"
     lines_list = []
-    with open(file_dat, "r") as reader:
-        lines = reader.readlines()
-        lines_list.append(lines)
-    for i in range(3):
+    for i in range(11):
         num_dat = num_dat + 1
-        file_dat = "/home/marcelo/Desktop/TE_data_me" + "01_"+ str(num_dat) + ".dat"
+        file_dat = "fault_1/TE_data_me" + "{:02d}".format(i + 1) + ".dat"
         with open(file_dat, "r") as reader:
             lines = reader.readlines()
             lines_list.append(lines)
     l = ""
     j = 0
     while j <= 959:
-        with open('all.csv', 'a') as csvfile:
-            for i in range(4):
-                if i < 3:
+        with open('fault_1.csv', 'a') as csvfile:
+            for i in range(11):
+                if i < 10:
                     l = l + str(lines_list[i][j]).replace('\n', '')
                 else:
                     l = l + str(lines_list[i][j])
                 csvfile.write(l)
                 l = ""
         j = j + 1
-
+    del(lines_list[:])
+    for i in range(11):
+        num_dat = num_dat + 1
+        file_dat = "fault_2/TE_data_me" + "{:02d}".format(i + 1) + ".dat"
+        with open(file_dat, "r") as reader:
+            lines = reader.readlines()
+            lines_list.append(lines)
+    l = ""
+    j = 0
+    while j <= 959:
+        with open('fault_2.csv', 'a') as csvfile:
+            for i in range(11):
+                if i < 10:
+                    l = l + str(lines_list[i][j]).replace('\n', '')
+                else:
+                    l = l + str(lines_list[i][j])
+                csvfile.write(l)
+                l = ""
+        j = j + 1
 """
 ========================================
 VISUALIZE TENNESSEE EASTMAN VARIABLES
@@ -40,6 +55,7 @@ import csv
 from sklearn.manifold import TSNE
 import SimpSOM as sps
 from sklearn.cluster import KMeans
+from minisom import MiniSom
 
 '''
 import sys
@@ -283,7 +299,7 @@ class TE():
         if not dropfigfile is None:
             print('Saving figure in ', dropfigfile)
             plt.savefig(dropfigfile, dpi=1200)
-        plt.show()
+        #plt.show()
 
 
     def plotscatter(self, datafile, feat1, feat2, standardize=True, dropfigfile=None,
@@ -473,8 +489,8 @@ class TE():
         f.seek(0)              # go back to beginning of file
         #print('ncol=', ncol, 'nfeat=', nfeat)
         
-        x = np.zeros(nfeat)
-        X = np.empty((0, nfeat))
+        x = np.zeros(1)
+        X = np.empty((0, 1))
         r = 0
         for row in reader:
             #print(row)
@@ -482,7 +498,7 @@ class TE():
             ncol = len(row)
             #modifiquei aqui
             for j in range(ncol):
-                if j % 3 == 0:
+                if j == ncol - 1:
                     cell = row[j]
                     if cell != '':
                         x[c] = float(cell)
@@ -565,116 +581,82 @@ def test1():
 
 
 def main():
-    os.system("rm all.csv")
+    os.system("rm *.csv")
     #para gerar novos arquivos de treino
-    #os.system("bash commands.sh")
+    os.system("bash commands.sh")
     print('Executing main() ....')
     make_all_csv()
     #X, Y = test1()
     #return        
     te = TE()
-    
-   # csvdatafile = '../out/all.csv'
-   # te.plotscatter(csvdatafile, feat1=9, feat2=16, standardize=True) #; quit()
-    datadir = '/home/thomas/Dropbox/software/TE/Tennessee_Eastman/TE_process/data/'
-    datadir = './'
-    fault_num='01'
-    faults=('0', '1', '2', '3')
-    method='PCA'
-    """te.plot_simultaneous(datadir, faults=faults, method=method,
-                         standardize=True, dropfigfile=None,
-                         title='Simultaneous')"""
-    #ftrain = "TE_data_me01.dat" #datadir+'d'+fault_num+'.dat'
-    #X_train = te.datacsvreadTE(ftrain)
     n_components = 2
-   # X_train = TSNE(n_components=n_components).fit_transform(X_train)
-    num_faults = len(faults)
-    for i in range(num_faults):
-            fault_num = faults[i]
-            ftest = '/home/marcelo/Desktop/TE_data_me01_' + fault_num + '.dat'
-            Xi = te.datacsvreadTE(ftest)
-            n, d = Xi.shape
-            yi = np.ones(n)
-            #print('Xi=\n', Xi, 'shape=', Xi.shape, 'i*yi=\n', i*yi, 'shape=', yi.shape)
-            if i == 0:
-                X = Xi
-                y = np.zeros(n)
-            else:
-                X = np.concatenate((X, Xi), axis = 0)
-                y = np.concatenate((y, i * yi), axis = 0)
-
-        #print('X=\n', X, 'shape=', X.shape, 'y=\n', y, 'shape=', y.shape)
-    classname = faults
-    classlabel = np.array(range(num_faults))
-
-    # plot_time_axis = True
-   # if method == 'tSNE':
-    #    print('Generating tSNE plot...')
-    featname = ['tSNE 1', 'tSNE 2']
-    X_train = X #TSNE(n_components=n_components).fit_transform(X) X
-    net = sps.somNet(20, 20, X_train, PBC=True)
-    for i in range(10):
-        net.train(0.01, 1000)
-    #net.save('filename_weight')
-        net.nodes_graph(colnum=0)
-        net.nodes_graph(colnum=1)
-        os.system("mv nodesFeature_0.png  nodesFeature_0_" + str(i) + ".png")
-        os.system("mv nodesFeature_1.png  nodesFeature_1_" + str(i) + ".png")
+    ftest = 'fault_1.csv'
+    X = te.datacsvreadTE(ftest) 
+    n, d = X.shape
+    y = np.zeros(n, dtype = int)   
+    classlabel = np.array(range(100))
     
-    prj = np.array(net.project(X_train, labels=["normal", "disturbio"]))
-    plt.scatter(prj.T[0], prj.T[1])
-    plt.show()
-    #kmeans = KMeans(n_clusters = 2, random_state = 0).fit(prj)
-    #print(kmeans.labels_)
+    ftest = 'fault_2.csv'
+    Xi = te.datacsvreadTE(ftest)
+    X = np.concatenate((X, Xi), axis = 0)
+    n, d = Xi.shape
+    yi = np.ones(n, dtype = int)
+    y = np.concatenate((y, yi), axis = 0)
+    featname = ['fault_1', 'fault_2']
+    X_train = TSNE(n_components=n_components).fit_transform(X) #TSNE(n_components=n_components).fit_transform(X) X
+    classname = ['fault_1', 'fault_2']
+    classlabel = np.array([0, 1])
+    featname = ['fault_1', 'fault_2']
 
-    #net.diff_graph()
-
-
-    '''
+    #print('ntrain=', ntrain, 'ntest=', ntest, 'n=', 'X=\n', X, '\nshape=', X.shape, 'y=\n',y,'shape=',y.shape,) #; quit()
     
+    te.plot_condition(X_train, y, classlabel, classname, featname, plot_time_axis = True,
+            dropfigfile = 'TSNE', title = 'TSNE')
+        
+    som = MiniSom(7, 7, 2, sigma=1.0, learning_rate=0.5)
+    som.random_weights_init(X_train)
+    print("Training...")
+    num_iterations = 1000
+    import matplotlib.pyplot as plt 
+    import matplotlib.image as mgimg
+    from matplotlib import animation
+    for i in range(100):
+        som.train_random(X_train, 1000) # training with 100 iterations
+        print("Número de iterações %d!" %num_iterations)
+        plt.bone()
+        plt.clf()
+        plt.pcolor(som.distance_map().T) # distance map as background
+        plt.colorbar()
+        markers = ['o','s','D']
+        colors = ['r','g','b']
+        for cnt,xx in enumerate(X_train):
+            w = som.winner(xx) # getting the winner
+            # palce a marker on the winning position for the sample xx
+            plt.plot(w[0]+.5,w[1]+.5,markers[y[cnt]],markerfacecolor='None',
+                markeredgecolor=colors[y[cnt]],markersize=12,markeredgewidth=2)
+        plt.title('Mapa Auto-Organizável')
+        plt.axis([0,som._weights.shape[0],0,som._weights.shape[1]])
+        plt.savefig('som_' + str(num_iterations) + '.png') # show the figure
+        num_iterations = num_iterations + 1000
+        plt.clf()
     
-    datadir = '/home/thomas/Dropbox/software/TE/Tennessee_Eastman/TE_process/data/'
-    fault_num='01'
 
-    faults=('01','02')
-    faults=('01','02','04','06')
-    faults=('01',)
-    #method='tSNE'
-    method='PCA'
-    #method='RadViz'
-    te.plot_simultaneous(datadir, faults=faults, method=method,
-                         standardize=True, dropfigfile=None,
-                         title='Simultaneous')
-    
-    #quit()
+    fig = plt.figure()
+    myimages_0 = []
+    num = 1000
+    #loops through available png:s
+    for p in range(100):
 
-    ftrain = datadir+'d'+fault_num+'.dat'
-    ftest = datadir+'d'+fault_num+'_te.dat'
+        ## Read in picture
+        fname = "som_%d.png" %num 
+        img = mgimg.imread(fname)
+        imgplot = plt.imshow(img)
 
-    X = te.datacsvreadTE(ftest)
-    te.signal_plot(infile=None, X=X, divide_by_mean=True, dropfigfile='/tmp/outfig.svg', title='Todas as variaveis'+' \n '+ftest)
-    
-  
-    feat1 = 3 # First feature
-    feat2 = 19 # Second feature
-    featname = '{'+te.extendedfeatname[feat1] + ',' + te.extendedfeatname[feat2]+'}'
-
-    te.signal_plot(infile=ftrain, divide_by_mean=False, dropfigfile='/tmp/outfig1.svg',
-            title='Subconjunto de variaveis: '+featname+' \n '+ftrain, mask=[feat1,feat2])
-
-    te.signal_plot(infile=ftest, divide_by_mean=False, dropfigfile='/tmp/outfig2.svg',
-            title='Subconjunto de variaveis: '+featname+' \n '+ftest, mask=[feat1,feat2])
-
-    te.plot_train_test_pair(datadir, fault_num='01', feat1=feat1, feat2=feat2,
-            standardize=False, plot_time_axis=True, dropfigfile='/tmp/outfig3.svg', title='Training and test pair')
-    te.plot_train_test_pair_tSNE(datadir, fault_num='01',
-            standardize=False, plot_time_axis=True, dropfigfile='/tmp/outfig4.svg', title='Training and test pair tSNE')
-
-
-
-    # quit()
-    '''
-
-
+        myimages_0.append([imgplot])
+        num = num + 1000
+    my_anim = animation.ArtistAnimation(fig, myimages_0, interval=1000, blit=True, repeat_delay=1000)
+    my_anim.save("som.gif") #plt.show()
+    os.system("rm som_*.png")
+   
 if __name__ == "__main__":
     main()
